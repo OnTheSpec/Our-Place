@@ -1,9 +1,10 @@
 const schema = {
   type: "object",
   additionalProperties: false,
-  required: ["summary", "tone", "items", "safety_level"],
+  required: ["summary", "reflection", "tone", "items", "safety_level"],
   properties: {
     summary: { type: "string" },
+    reflection: { type: "string" },
     tone: { type: "string" },
     safety_level: { type: "string", enum: ["routine", "concern", "urgent"] },
     items: { type: "array", items: { type: "object", additionalProperties: false, required: ["kind", "title", "detail", "source_quote"], properties: {
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     headers: { "content-type": "application/json", authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? "gpt-5.6-sol",
-      instructions: "You turn an older adult's check-in into a warm, factual family update. Use only supplied facts. Never diagnose. A possible_concern must be cautious and quote-grounded. Keep the summary under 70 words. Do not infer mood from silence.",
+      instructions: "You turn an older adult's check-in into a warm, factual family update. Use only supplied facts. Never diagnose, evaluate, praise, or tell the person how they should feel. Write one tentative person-centered reflection beginning with 'It sounds like' or 'You seem to be saying' and preserve uncertainty. The reflection must be easy for the speaker to correct. A possible_concern must be cautious and quote-grounded. Keep the summary under 70 words. Do not infer mood from silence.",
       input: transcript,
       text: { format: { type: "json_schema", name: "check_in_extraction", strict: true, schema } },
     }),
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
 
 function demoExtraction() {
   return {
-    summary: "Evelyn is feeling good. She enjoyed the sunshine, watered her tomatoes, and remembered painting a blue porch swing with Frank.", tone: "Bright and talkative", safety_level: "routine",
+    summary: "Evelyn said the sunshine felt lovely. While watering her tomatoes, she remembered painting a blue porch swing with Frank.", reflection: "It sounds like the sunshine left you feeling a little lighter, and that Frank’s memory felt close today.", tone: "Warm and reflective", safety_level: "routine",
     items: [
       { kind: "life_update", title: "A sunny day", detail: "Watered her tomatoes.", source_quote: "The sunshine has been lovely." },
       { kind: "memory", title: "The blue porch swing", detail: "Evelyn and Frank painted their porch swing blue.", source_quote: "the blue porch swing Frank and I painted" },

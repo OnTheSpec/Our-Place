@@ -4,11 +4,13 @@
 
 **Promise:** a two-minute conversation that makes the next family contact more likely.
 
+**Relational stance:** the experience is inspired by person-centered principles associated with Carl Rogers: empathy, genuineness, unconditional positive regard, and trust in the person’s capacity to name their own experience. It is not therapy and does not present the AI as a counselor. The UI listens, offers tentative reflections, invites correction, and protects the speaker’s autonomy.
+
 **Primary user:** an older adult living independently. **Secondary user:** one trusted family member. **Golden path:** start → answer three prompts → review/approve → family sees a short summary, actionable requests, and a preserved memory.
 
 ### In scope for July 21
 
-One household, one older adult, one family viewer; daily check-in; speech with text fallback; structured extraction; explicit sharing consent; family dashboard; request completion; memory archive; urgent-language interruption; seeded demo mode.
+One household, one older adult, one family viewer; daily check-in; speech with text fallback; structured extraction; explicit sharing consent; family dashboard; named commitments; family reactions and short replies; gentle reminder preference; memory conversation prompts; urgent-language interruption; seeded demo mode.
 
 ### Explicitly out of scope
 
@@ -51,13 +53,14 @@ The scaffold uses the current recommended OpenAI model as a configurable default
 
 ## Data and contracts
 
-The Drizzle schema lives in `db/schema.ts`. Every user-owned query must include `household_id`; IDs are random UUIDs. Store the approved transcript and derived items, not raw audio by default. `source_quote` makes every extracted request or concern traceable.
+The Drizzle schema lives in `db/schema.ts`. Every user-owned query must include `household_id`; IDs are random UUIDs. Store the approved transcript and derived items, not raw check-in audio by default. `source_quote` makes every extracted request or concern traceable. Replies and named commitments close the loop: a reply belongs to one approved check-in, while a commitment belongs to one extracted request and one accountable family member. Voice replies use short-lived R2 objects only after consent; the MVP interface simulates this interaction until R2 is enabled.
 
 Extraction returns:
 
 ```json
 {
   "summary": "Warm factual update under 70 words",
+  "reflection": "Tentative, correctable understanding in the speaker's language",
   "tone": "Brief, non-clinical description",
   "safety_level": "routine | concern | urgent",
   "items": [{
@@ -69,7 +72,15 @@ Extraction returns:
 }
 ```
 
-No item without transcript evidence is shown. The user reviews the final family update before `consented_at` is set. Edits preserve both original extraction and approved display text in production.
+No item without transcript evidence is shown. Reflections are phrased tentatively and always paired with an easy “That’s right / Let me say it differently” choice. The user reviews the final family update before `consented_at` is set. Edits preserve both original extraction and approved display text in production.
+
+### Person-centered question set
+
+1. “How is today feeling for you?”
+2. “What has stayed with you today?”
+3. “What would you like your family to understand or help with?”
+
+Questions remain open, non-evaluative, and optional. The family side follows a simple rhythm: receive the person’s own words, reflect what was heard, then respond authentically. It never supplies clinical interpretations or scripts that pretend to know more than the speaker said.
 
 ## Voice and AI flow
 

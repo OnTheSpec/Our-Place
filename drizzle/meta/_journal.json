@@ -8,6 +8,13 @@
       "when": 1784359123101,
       "tag": "0000_flowery_guardsmen",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1784428841087,
+      "tag": "0001_loose_morlun",
+      "breakpoints": true
     }
   ]
 }
