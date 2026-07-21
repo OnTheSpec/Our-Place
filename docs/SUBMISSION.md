@@ -8,7 +8,7 @@
 - **Public demo:** `https://still-here-family-checkin.georgej.chatgpt.site/` (currently requires ChatGPT sign-in; judges can always use the credential-free repository demo)
 - **Repository URL:** `https://github.com/OnTheSpec/Our-Place`
 - **Public YouTube demo:** `[ADD PUBLIC YOUTUBE URL]`
-- **Codex /feedback Session ID:** `[ADD SESSION ID]`
+- **Codex /feedback Session ID:** `019f73ff-7acf-78d3-9309-b3b609accd64`
 
 ## Short description
 
@@ -118,6 +118,6 @@ End on the logo and tagline: **Our Place — A warm place to stay close.**
 - [x] Build, lint, and server-render tests pass
 - [ ] Repository is public with an appropriate license, or private and shared with both required judge addresses
 - [ ] Public YouTube video is under three minutes and its audio mentions both Codex and GPT-5.6
-- [ ] `/feedback` Codex Session ID is recorded
+- [x] `/feedback` Codex Session ID is recorded
 - [ ] Devpost registration and eligibility are complete
 - [ ] Submission fields are reviewed and final submission is confirmed before 5:00 PM PDT
