@@ -1,10 +1,12 @@
-# Still Here — architecture and implementation plan
+# Our Place — architecture and implementation plan
 
 ## Product contract
 
 **Promise:** a two-minute conversation that makes the next family contact more likely.
 
 **Relational stance:** the experience is inspired by person-centered principles associated with Carl Rogers: empathy, genuineness, unconditional positive regard, and trust in the person’s capacity to name their own experience. It is not therapy and does not present the AI as a counselor. The UI listens, offers tentative reflections, invites correction, and protects the speaker’s autonomy.
+
+**Visual stance:** the family is always represented as one intact circle. The primary mark is a true overhead view of four generations holding one another in an unbroken embrace. The palette uses candlelight cream, apricot, muted rose, terracotta clay, cocoa, and evergreen: warmth and affection with deep-enough anchors for accessible contrast. The mark contains no text, medical symbolism, or detached figures.
 
 **Primary user:** an older adult living independently. **Secondary user:** one trusted family member. **Golden path:** start → answer three prompts → review/approve → family sees a short summary, actionable requests, and a preserved memory.
 
@@ -22,7 +24,7 @@ Diagnosis, passive surveillance, medication management, fall detection, emergenc
 Browser (older-adult and family modes)
   ├─ speech capture / typed fallback
   ├─ accessible three-prompt state machine
-  └─ review, consent, dashboard, archive
+  └─ review, consent, family view, current approved Stories
              │ HTTPS + session + CSRF protection
 Cloudflare Worker / vinext routes
   ├─ authorization and household scoping
@@ -53,7 +55,7 @@ The scaffold uses the current recommended OpenAI model as a configurable default
 
 ## Data and contracts
 
-The Drizzle schema lives in `db/schema.ts`. Every user-owned query must include `household_id`; IDs are random UUIDs. Store the approved transcript and derived items, not raw check-in audio by default. `source_quote` makes every extracted request or concern traceable. Replies and named commitments close the loop: a reply belongs to one approved check-in, while a commitment belongs to one extracted request and one accountable family member. Voice replies use short-lived R2 objects only after consent; the MVP interface simulates this interaction until R2 is enabled.
+The Drizzle schema lives in `db/schema.ts`. Every user-owned query must include `household_id`; IDs are random UUIDs. Store the approved transcript and derived items, not raw check-in audio by default. `source_quote` makes every extracted request or concern traceable. Replies and named commitments close the loop: a reply belongs to one approved check-in, while a commitment records one family member's offer tied to one extracted request. Extracted items and commitments deliberately carry no open/done/archive workflow or completion timestamps. Voice replies use short-lived R2 objects only after consent; the MVP interface simulates this interaction until R2 is enabled.
 
 Extraction returns:
 
@@ -121,7 +123,7 @@ Questions remain open, non-evaluative, and optional. The family side follows a s
 
 ## Observability and reliability
 
-Use structured logs with request ID, household-safe pseudonymous ID, route, latency, model name, schema-valid flag, safety tier, and error code—never transcript text. Track check-in completion, extraction success, false/unsupported item rate, share approval, family open, request completion, and memory saves. Alert on elevated API failures, notification backlog, auth failures, and urgent-flow delivery problems. Add OpenTelemetry/Sentry after the vertical slice; sample successful traces and retain all errors after redaction.
+Use structured logs with request ID, household-safe pseudonymous ID, route, latency, model name, schema-valid flag, safety tier, and error code—never transcript text. Track check-in completion, extraction success, false/unsupported item rate, share approval, family open, family offers of help, and memory saves. Alert on elevated API failures, notification backlog, auth failures, and urgent-flow delivery problems. Add OpenTelemetry/Sentry after the vertical slice; sample successful traces and retain all errors after redaction.
 
 Graceful degradation: text when mic fails, draft retry when AI fails, dashboard remains readable when notifications fail, and demo fixture mode when credentials are absent.
 
@@ -129,7 +131,7 @@ Graceful degradation: text when mic fails, draft retry when AI fails, dashboard 
 
 1. Unit: prompt state machine, input limits, urgent phrase/negation rules, schema validation, household scoping.
 2. Contract: recorded extraction fixtures and provider failure/timeout cases.
-3. Integration: create check-in → approve → dashboard → complete request → memory deletion.
+3. Integration: create check-in → approve → family view → offer help → memory deletion.
 4. Accessibility: automated axe plus manual keyboard, VoiceOver, zoom, motion, and contrast.
 5. Safety eval set: at least 100 labeled transcripts; block release on any missed obvious emergency or fabricated request. Human review all concern/urgent errors.
 6. Demo smoke: fresh browser, denied mic, no API key, slow network, and mobile width.
@@ -144,7 +146,7 @@ Graceful degradation: text when mic fails, draft retry when AI fails, dashboard 
 
 ## Implementation sequence
 
-1. **Vertical demo (done in scaffold):** polished five-view UI, deterministic voice simulation, family output, archive, API contract.
+1. **Vertical demo (done in scaffold):** polished five-view UI, deterministic voice simulation, family output, current approved Stories, API contract.
 2. **Data slice:** migrations, repository layer, seed command, household authorization tests.
 3. **Real voice/extraction:** MediaRecorder, transcription, `/api/extract`, review/approval, retry states.
 4. **Pairing/auth:** family magic link/passkey and elder paired-device PIN; authorization matrix tests.
@@ -157,5 +159,5 @@ Graceful degradation: text when mic fails, draft retry when AI fails, dashboard 
 2. Evelyn taps **Start my check-in** and answers the three prompts; use the simulated capture for reliability.
 3. Show the approved summary: sunshine, tomatoes, one porch-swing memory, milk, flickering light.
 4. Open **Family view** and check one practical request.
-5. Open **Memories** and show the archive growing.
-6. Close with: “Still Here does not replace a family call. It makes the next one more likely.”
+5. Open **Stories** and show the memory from the current approved extraction.
+6. Close with: “Our Place does not replace a family call. It makes the next one more likely.”
