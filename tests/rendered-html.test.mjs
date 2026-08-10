@@ -65,12 +65,12 @@ test("server-renders the Our Place experience", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
   assert.match(html, /<title>Our Place/);
-  assert.match(html, /A warm place to stay close/);
-  assert.match(html, /Good morning/);
-  assert.match(html, /Talk about my day/);
-  assert.match(html, /You were understood/);
-  assert.match(html, /Call my family/);
+  assert.match(html, /name="description" content="A warm place for older adults to share their days and for families to stay close\."/);
+  assert.match(html, />Our Place</);
+  assert.match(html, />A warm place to stay close</);
+  assert.match(html, />Enter Our Place</);
   assert.match(html, /our-place-family-mark\.png/);
+  assert.match(html, /Four generations held together in a circle of changing light/);
   assert.match(html, /https:\/\/preview\.our-place\.example\/our-place-family-mark\.png/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
 });
@@ -171,12 +171,13 @@ test("extraction requires exactly three non-empty short strings", async () => {
   }
 });
 
-test("keeps safety and extraction boundaries in server code", async () => {
-  const [route, client, css, layout] = await Promise.all([
+test("keeps safety, extraction, and opening-screen boundaries in source", async () => {
+  const [route, client, css, layout, handwriting] = await Promise.all([
     readFile(new URL("../app/api/extract/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/our-place-app.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/ui/hand-writing-text.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(route, /process\.env\.OPENAI_API_KEY/);
   assert.match(route, /urgentLanguagePatterns/);
@@ -187,6 +188,13 @@ test("keeps safety and extraction boundaries in server code", async () => {
   assert.match(route, /person-centered reflection/);
   assert.match(client, /I’d rather type/);
   assert.match(client, /export function OurPlaceApp/);
+  assert.match(client, /useState<View>\("opening"\)/);
+  assert.match(client, /view !== "opening" && <Header/);
+  assert.match(client, /<HandWrittenTitle title="Our Place" subtitle="A warm place to stay close"/);
+  assert.match(client, /Good morning/);
+  assert.match(client, /Talk about my day/);
+  assert.match(client, /You were understood/);
+  assert.match(client, /Call my family/);
   assert.match(client, /I want to understand you as you mean it/);
   assert.match(client, /Am I staying close to what you mean/);
   assert.match(client, /Come close before you act/);
@@ -206,6 +214,12 @@ test("keeps safety and extraction boundaries in server code", async () => {
   assert.match(layout, /our-place-family-mark\.png/);
   assert.match(layout, /x-forwarded-host/);
   assert.match(layout, /generateMetadata/);
+  assert.match(handwriting, /export function HandWrittenTitle/);
+  assert.match(handwriting, /useReducedMotion/);
+  assert.match(handwriting, /aria-hidden="true"/);
+  assert.match(handwriting, /<motion\.h1/);
+  assert.match(handwriting, /<motion\.path/);
+  assert.doesNotMatch(handwriting, /KokonutUI/i);
 });
 
 test("client extraction, approval, edit, and tracker guards stay wired", async () => {

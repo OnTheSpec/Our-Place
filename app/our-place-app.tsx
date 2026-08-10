@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { HandWrittenTitle } from "@/components/ui/hand-writing-text";
 
-type View = "home" | "checkin" | "complete" | "family" | "memories" | "invite";
+type View = "opening" | "home" | "checkin" | "complete" | "family" | "memories" | "invite";
 type Reply = { from: string; message: string; voice?: boolean };
 type ExtractionItem = {
   kind: "life_update" | "memory" | "request" | "possible_concern";
@@ -83,7 +84,7 @@ function reflectionFor(step: number, answer: string) {
 }
 
 export function OurPlaceApp() {
-  const [view, setView] = useState<View>("home");
+  const [view, setView] = useState<View>("opening");
   const [step, setStep] = useState(0);
   const [listening, setListening] = useState(false);
   const [answers, setAnswers] = useState(["", "", ""]);
@@ -166,7 +167,8 @@ export function OurPlaceApp() {
   }
 
   return <main className={`app-shell ${familyMode ? "family-shell" : "elder-shell"}`}>
-    <Header familyMode={familyMode} view={view} go={go} />
+    {view !== "opening" && <Header familyMode={familyMode} view={view} go={go} />}
+    {view === "opening" && <Opening onEnter={() => setView("home")} />}
     {view === "home" && <Home onBegin={begin} reply={reply} routine={routine} setRoutine={setRoutine} onInvite={() => setView("invite")} approvedExtraction={approvedExtraction} commitments={commitments} />}
     {view === "checkin" && <CheckIn {...{ step, listening, answers, textMode, textarea, setTextMode, setAnswers, capture, next }} onExit={() => setView("home")} />}
     {view === "complete" && <Complete status={extractionStatus} error={extractionError} extraction={extraction} approved={Boolean(approvedExtraction)} onRetry={() => void loadExtraction(answers)} onEdit={editUpdate} onApprove={setApprovedExtraction} onHome={() => setView("home")} onFamily={() => go("family")} />}
@@ -174,6 +176,19 @@ export function OurPlaceApp() {
     {view === "memories" && approvedExtraction && <Memories extraction={approvedExtraction} />}
     {view === "invite" && <Invitation onAccept={() => setView("home")} />}
   </main>;
+}
+
+function Opening({ onEnter }: { onEnter: () => void }) {
+  return <section className="opening-screen" aria-labelledby="opening-title">
+    <div className="opening-family-mark">
+      <Image src="/our-place-family-mark.png" alt="Four generations held together in a circle of changing light" width={176} height={176} priority unoptimized />
+    </div>
+    <div id="opening-title">
+      <HandWrittenTitle title="Our Place" subtitle="A warm place to stay close" />
+    </div>
+    <button className="primary opening-enter" onClick={onEnter}>Enter Our Place</button>
+    <p className="opening-trust"><span aria-hidden="true">♡</span> Your words remain yours.</p>
+  </section>;
 }
 
 function Header({ familyMode, view, go }: { familyMode: boolean; view: View; go: (v: View) => void }) {
