@@ -68,10 +68,19 @@ test("server-renders the Our Place experience", async () => {
   assert.match(html, /name="description" content="A warm place for older adults to share their days and for families to stay close\."/);
   assert.match(html, />Our Place</);
   assert.match(html, />A warm place to stay close</);
+  assert.match(html, />The small things are how we stay close\.</);
   assert.match(html, />Enter Our Place</);
+  assert.match(html, /our-place-family-world\.webp/);
+  assert.match(html, /A multigenerational family embracing together on their porch at golden-hour dusk/);
+  assert.match(html, />Your space · Ready when you are</);
+  assert.match(html, />Only what you approve is shared</);
+  assert.match(html, />Speak freely</);
+  assert.match(html, />Check what we heard</);
+  assert.match(html, />Share only when it feels true</);
   assert.match(html, /our-place-family-mark\.png/);
-  assert.match(html, /Four generations held together in a circle of changing light/);
-  assert.match(html, /https:\/\/preview\.our-place\.example\/our-place-family-mark\.png/);
+  assert.match(html, /Our Place — A warm place to stay close, with a family embracing at home/);
+  assert.match(html, /https:\/\/preview\.our-place\.example\/og\.png/);
+  assert.match(html, /summary_large_image/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
 });
 
@@ -191,7 +200,30 @@ test("keeps safety, extraction, opening-screen, and voice-heart boundaries in so
   assert.match(client, /export function OurPlaceApp/);
   assert.match(client, /useState<View>\("opening"\)/);
   assert.match(client, /view !== "opening" && <Header/);
-  assert.match(client, /<HandWrittenTitle title="Our Place" subtitle="A warm place to stay close"/);
+  const openingStart = client.indexOf("function Opening(");
+  const openingEnd = client.indexOf("function Header(", openingStart);
+  assert.notEqual(openingStart, -1, "missing Opening function");
+  assert.notEqual(openingEnd, -1, "missing Opening function boundary");
+  const opening = client.slice(openingStart, openingEnd);
+  assert.match(opening, /src="\/our-place-family-world\.webp"/);
+  assert.match(opening, /alt="A multigenerational family embracing together on their porch at golden-hour dusk"/);
+  assert.match(opening, /\bfill\b/);
+  assert.match(opening, /sizes="100vw"/);
+  assert.match(opening, /\bpriority\b/);
+  assert.match(opening, /\bunoptimized\b/);
+  assert.match(opening, /A warm place to stay close/);
+  assert.match(opening, /The small things are how we stay close/);
+  assert.match(opening, /Your space · Ready when you are/);
+  assert.match(opening, /Only what you approve is shared/);
+  assert.equal((opening.match(/className="opening-status-note"/g) ?? []).length, 2);
+  assert.match(opening, /Speak freely/);
+  assert.match(opening, /Check what we heard/);
+  assert.match(opening, /Share only when it feels true/);
+  assert.match(opening, /steps\.current\?\.focus\(\)/);
+  assert.equal((opening.match(/<h1\b/g) ?? []).length, 1);
+  assert.match(opening, /aria-labelledby="opening-title"/);
+  assert.match(opening, /<h1 id="opening-title"/);
+  assert.doesNotMatch(opening, /Cofounder|streaks?|scores?|quests?|coins?|badges?|completion percentages?|progress rings?|monitoring|diagnosis/i);
   assert.match(client, /Good morning/);
   assert.match(client, /Talk about my day/);
   assert.match(client, /You were understood/);
@@ -209,6 +241,10 @@ test("keeps safety, extraction, opening-screen, and voice-heart boundaries in so
   assert.match(client, /Create this space together/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /focus-visible/);
+  assert.match(css, /\.opening-world-image/);
+  assert.match(css, /\.opening-world-wash/);
+  assert.match(css, /background:#172a29/);
+  assert.match(css, /object-position:68% center/);
   assert.match(css, /--clay:#a44735/);
   assert.match(css, /--violet:#75639d/);
   assert.match(css, /Klee-inspired color dialogue/);
@@ -443,9 +479,10 @@ test("keeps the active product free of legacy identity and chore-domain internal
 
   await Promise.all([
     access(new URL("../public/our-place-family-mark.png", import.meta.url)),
+    access(new URL("../public/our-place-family-world.webp", import.meta.url)),
     access(new URL("../public/our-place-family-mark-original.png", import.meta.url)),
     access(new URL(`../demo/legacy-assets/${legacyStem}-social-card.png`, import.meta.url)),
-    assert.rejects(access(new URL("../public/og.png", import.meta.url))),
+    access(new URL("../public/og.png", import.meta.url)),
     assert.rejects(access(new URL(`../app/${legacyStem}-app.tsx`, import.meta.url))),
     assert.rejects(access(new URL(`../public/${legacyStem}-family-mark.png`, import.meta.url))),
     assert.rejects(access(new URL(`../public/${legacyStem}-family-mark-original.png`, import.meta.url))),

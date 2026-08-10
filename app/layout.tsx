@@ -34,13 +34,13 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: "Our Place — A warm place to stay close",
       description: "Helping families listen, understand, and stay close.",
-      images: [{ url: "/our-place-family-mark.png", width: 768, height: 768, alt: "Four generations held together in a circle of changing light" }],
+      images: [{ url: "/og.png", width: 1672, height: 941, alt: "Our Place — A warm place to stay close, with a family embracing at home" }],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: "Our Place — A warm place to stay close",
       description: "Helping families listen, understand, and stay close.",
-      images: ["/our-place-family-mark.png"],
+      images: ["/og.png"],
     },
   };
 }

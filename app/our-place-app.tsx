@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { HandWrittenTitle } from "@/components/ui/hand-writing-text";
 import { VoicePoweredOrb } from "@/components/ui/voice-powered-orb";
 
 type View = "opening" | "home" | "checkin" | "complete" | "family" | "memories" | "invite";
@@ -207,15 +206,44 @@ export function OurPlaceApp() {
 }
 
 function Opening({ onEnter }: { onEnter: () => void }) {
+  const steps = useRef<HTMLDivElement>(null);
+
   return <section className="opening-screen" aria-labelledby="opening-title">
-    <div className="opening-family-mark">
-      <Image src="/our-place-family-mark.png" alt="Four generations held together in a circle of changing light" width={176} height={176} priority unoptimized />
+    <Image
+      className="opening-world-image"
+      src="/our-place-family-world.webp"
+      alt="A multigenerational family embracing together on their porch at golden-hour dusk"
+      fill
+      sizes="100vw"
+      priority
+      unoptimized
+    />
+    <div className="opening-world-wash" aria-hidden="true" />
+    <header className="opening-bar">
+      <div className="opening-brand">
+        <span className="opening-brand-mark" aria-hidden="true"><Image src="/our-place-family-mark.png" alt="" width={56} height={56} priority unoptimized /></span>
+        <span><strong>Our Place</strong><small>Family stays close here</small></span>
+      </div>
+      <p className="opening-trust"><span aria-hidden="true">♡</span> Your words remain yours.</p>
+    </header>
+    <div className="opening-copy">
+      <p className="opening-kicker">A warm place to stay close</p>
+      <h1 id="opening-title">The small things are how we stay close.</h1>
+      <p className="opening-promise">Speak about your day in your own words. Check what we heard, then choose what your family may see.</p>
+      <div className="opening-actions">
+        <button className="primary opening-enter" onClick={onEnter}>Enter Our Place</button>
+        <button className="opening-how" onClick={() => steps.current?.focus()}>See how it works <span aria-hidden="true">↓</span></button>
+      </div>
     </div>
-    <div id="opening-title">
-      <HandWrittenTitle title="Our Place" subtitle="A warm place to stay close" />
+    <aside className="opening-status" aria-label="What to expect in Our Place">
+      <p className="opening-status-note"><span aria-hidden="true" /><strong>Your space · Ready when you are</strong></p>
+      <p className="opening-status-note"><span aria-hidden="true" /><strong>Only what you approve is shared</strong></p>
+    </aside>
+    <div className="opening-steps" ref={steps} tabIndex={-1} aria-label="How Our Place works">
+      <div><span aria-hidden="true">01</span><p><strong>Speak freely</strong><small>There is no right mood or answer.</small></p></div>
+      <div><span aria-hidden="true">02</span><p><strong>Check what we heard</strong><small>Correct anything that does not feel true.</small></p></div>
+      <div><span aria-hidden="true">03</span><p><strong>Share only when it feels true</strong><small>Your approval always comes first.</small></p></div>
     </div>
-    <button className="primary opening-enter" onClick={onEnter}>Enter Our Place</button>
-    <p className="opening-trust"><span aria-hidden="true">♡</span> Your words remain yours.</p>
   </section>;
 }
 

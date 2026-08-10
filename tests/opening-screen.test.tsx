@@ -18,9 +18,18 @@ describe("Our Place opening screen", () => {
   it("enters the established home experience", () => {
     render(<OurPlaceApp />);
 
-    expect(screen.getByRole("heading", { level: 1, name: "Our Place" })).toBeTruthy();
+    expect(screen.getByText("Our Place")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "The small things are how we stay close." })).toBeTruthy();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByText("A warm place to stay close")).toBeTruthy();
+    expect(screen.getByAltText("A multigenerational family embracing together on their porch at golden-hour dusk")).toBeTruthy();
+    expect(screen.getByText("Only what you approve is shared")).toBeTruthy();
     expect(screen.queryByText(/Good morning/i)).toBeNull();
+
+    const steps = screen.getByText("Speak freely").closest(".opening-steps");
+    expect(steps).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /See how it works/i }));
+    expect(document.activeElement).toBe(steps);
 
     fireEvent.click(screen.getByRole("button", { name: "Enter Our Place" }));
 
