@@ -171,13 +171,14 @@ test("extraction requires exactly three non-empty short strings", async () => {
   }
 });
 
-test("keeps safety, extraction, and opening-screen boundaries in source", async () => {
-  const [route, client, css, layout, handwriting] = await Promise.all([
+test("keeps safety, extraction, opening-screen, and voice-heart boundaries in source", async () => {
+  const [route, client, css, layout, handwriting, voiceHeart] = await Promise.all([
     readFile(new URL("../app/api/extract/route.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/our-place-app.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/ui/hand-writing-text.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/ui/voice-powered-orb.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(route, /process\.env\.OPENAI_API_KEY/);
   assert.match(route, /urgentLanguagePatterns/);
@@ -220,6 +221,27 @@ test("keeps safety, extraction, and opening-screen boundaries in source", async 
   assert.match(handwriting, /<motion\.h1/);
   assert.match(handwriting, /<motion\.path/);
   assert.doesNotMatch(handwriting, /KokonutUI/i);
+  assert.match(voiceHeart, /import \{ Mesh, Program, Renderer, Triangle, Vec3 \} from "ogl"/);
+  assert.match(voiceHeart, /if \(!enableVoiceControl\)[\s\S]{0,500}return/);
+  assert.match(voiceHeart, /navigator\.mediaDevices\?\.getUserMedia/);
+  assert.match(voiceHeart, /cancelled \|\| !enabledRef\.current/);
+  assert.match(voiceHeart, /stopStream\(lateStream\)/);
+  assert.match(voiceHeart, /getTracks\(\)\.forEach\(\(track\) => track\.stop\(\)\)/);
+  assert.match(voiceHeart, /source\?\.disconnect\(\)/);
+  assert.match(voiceHeart, /context\.close\(\)/);
+  assert.match(voiceHeart, /prefers-reduced-motion: reduce/);
+  assert.match(voiceHeart, /aria-hidden="true"/);
+  assert.match(voiceHeart, /canvas\.setAttribute\("aria-hidden", "true"\)/);
+  assert.match(voiceHeart, /WEBGL_lose_context/);
+  assert.match(client, /<VoicePoweredOrb enableVoiceControl=\{listening\}/);
+  assert.match(client, /aria-pressed=\{listening\}/);
+  assert.match(client, /captureTimeout/);
+  assert.match(client, /clearTimeout/);
+  assert.match(css, /\.voice-heart-button/);
+  assert.match(css, /\.voice-heart-radiance/);
+  assert.match(css, /(?:-webkit-)?mask:url\("data:image\/svg\+xml/);
+  assert.match(css, /heart-listening-radiance/);
+  assert.doesNotMatch(css, /\.voice-orb|\.orb-dot/);
 });
 
 test("client extraction, approval, edit, and tracker guards stay wired", async () => {

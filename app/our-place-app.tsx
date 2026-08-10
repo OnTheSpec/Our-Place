@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HandWrittenTitle } from "@/components/ui/hand-writing-text";
+import { VoicePoweredOrb } from "@/components/ui/voice-powered-orb";
 
 type View = "opening" | "home" | "checkin" | "complete" | "family" | "memories" | "invite";
 type Reply = { from: string; message: string; voice?: boolean };
@@ -98,9 +99,13 @@ export function OurPlaceApp() {
   const [extractionError, setExtractionError] = useState("");
   const [approvedExtraction, setApprovedExtraction] = useState<RoutineExtraction | null>(null);
   const extractionRequest = useRef(0);
+  const captureTimeout = useRef<number | null>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { if (textMode) textarea.current?.focus(); }, [textMode]);
+  useEffect(() => () => {
+    if (captureTimeout.current !== null) window.clearTimeout(captureTimeout.current);
+  }, []);
 
   const loadExtraction = useCallback(async (answers: string[]) => {
     const requestId = ++extractionRequest.current;
@@ -135,27 +140,40 @@ export function OurPlaceApp() {
 
   const familyMode = Boolean(approvedExtraction) && (view === "family" || view === "memories");
 
+  function cancelCapture() {
+    if (captureTimeout.current !== null) {
+      window.clearTimeout(captureTimeout.current);
+      captureTimeout.current = null;
+    }
+  }
+
   function begin() {
+    cancelCapture();
     extractionRequest.current += 1;
     setStep(0); setAnswers(["", "", ""]); setListening(false); setTextMode(false);
     setExtraction(null); setExtractionStatus("idle"); setExtractionError(""); setApprovedExtraction(null); setCommitments({}); setView("checkin");
   }
 
   function capture() {
-    if (listening) { setListening(false); return; }
+    if (listening) { cancelCapture(); setListening(false); return; }
+    cancelCapture();
     setListening(true);
-    window.setTimeout(() => {
-      setAnswers((current) => current.map((answer, index) => index === step ? demoAnswers[step] : answer));
+    const capturedStep = step;
+    captureTimeout.current = window.setTimeout(() => {
+      captureTimeout.current = null;
+      setAnswers((current) => current.map((answer, index) => index === capturedStep ? demoAnswers[capturedStep] : answer));
       setListening(false);
     }, 1400);
   }
 
   function next() {
+    cancelCapture();
     if (step < PROMPTS.length - 1) { setStep(step + 1); setListening(false); setTextMode(false); }
     else { setView("complete"); void loadExtraction(answers); }
   }
 
   function editUpdate() {
+    cancelCapture();
     extractionRequest.current += 1;
     setExtraction(null); setExtractionStatus("idle"); setExtractionError(""); setApprovedExtraction(null); setCommitments({});
     setStep(0); setListening(false); setTextMode(false); setView("checkin");
@@ -163,14 +181,24 @@ export function OurPlaceApp() {
 
   function go(nextView: View) {
     if ((nextView === "family" || nextView === "memories") && !approvedExtraction) return;
+    cancelCapture();
+    setListening(false);
     setView(nextView);
+  }
+
+  function changeTextMode(value: boolean) {
+    if (value) {
+      cancelCapture();
+      setListening(false);
+    }
+    setTextMode(value);
   }
 
   return <main className={`app-shell ${familyMode ? "family-shell" : "elder-shell"}`}>
     {view !== "opening" && <Header familyMode={familyMode} view={view} go={go} />}
     {view === "opening" && <Opening onEnter={() => setView("home")} />}
     {view === "home" && <Home onBegin={begin} reply={reply} routine={routine} setRoutine={setRoutine} onInvite={() => setView("invite")} approvedExtraction={approvedExtraction} commitments={commitments} />}
-    {view === "checkin" && <CheckIn {...{ step, listening, answers, textMode, textarea, setTextMode, setAnswers, capture, next }} onExit={() => setView("home")} />}
+    {view === "checkin" && <CheckIn {...{ step, listening, answers, textMode, textarea, setAnswers, capture, next }} setTextMode={changeTextMode} onExit={() => { cancelCapture(); setListening(false); setView("home"); }} />}
     {view === "complete" && <Complete status={extractionStatus} error={extractionError} extraction={extraction} approved={Boolean(approvedExtraction)} onRetry={() => void loadExtraction(answers)} onEdit={editUpdate} onApprove={setApprovedExtraction} onHome={() => setView("home")} onFamily={() => go("family")} />}
     {view === "family" && approvedExtraction && <Family extraction={approvedExtraction} {...{ reaction, setReaction, commitments, setCommitments, setReply }} onMemories={() => go("memories")} />}
     {view === "memories" && approvedExtraction && <Memories extraction={approvedExtraction} />}
@@ -235,7 +263,11 @@ function CheckIn({ step, listening, answers, textMode, textarea, setTextMode, se
     <p className="step-label">{PROMPTS[step].lead}</p>
     <h1>{PROMPTS[step].question}</h1>
     {!hasAnswer && <p className="helper">Take your time. Start wherever feels true for you.</p>}
-    {textMode ? <textarea ref={textarea} value={answer} onChange={(event) => setAnswers(current => current.map((value, index) => index === step ? event.target.value : value))} placeholder="Type what you’d like to share…" aria-label="Your answer" /> : <button className={`voice-orb ${listening ? "listening" : ""}`} onClick={capture} aria-label={listening ? "Stop listening" : "Start speaking"}><span className="orb-dot">●</span><strong>{listening ? "I’m listening…" : hasAnswer ? "Say it again" : "Tap to speak"}</strong></button>}
+    {textMode ? <textarea ref={textarea} value={answer} onChange={(event) => setAnswers(current => current.map((value, index) => index === step ? event.target.value : value))} placeholder="Type what you’d like to share…" aria-label="Your answer" /> : <button className={`voice-heart-button ${listening ? "listening" : ""}`} onClick={capture} aria-label={listening ? "Stop listening" : "Start speaking"} aria-pressed={listening}>
+      <span className="voice-heart-radiance" aria-hidden="true" />
+      <VoicePoweredOrb enableVoiceControl={listening} />
+      <span className="voice-heart-content"><span className="voice-heart-icon" aria-hidden="true">{listening ? "■" : "●"}</span><strong>{listening ? "I’m listening…" : hasAnswer ? "Say it again" : "Tap to speak"}</strong></span>
+    </button>}
     <div aria-live="polite">{hasAnswer && <div className="heard reflection"><span>♡</span><p><small>I want to understand you as you mean it</small><strong>{reflectionFor(step, answer)}</strong><em>Am I staying close to what you mean?</em></p></div>}</div>
     <div className="single-choice">{hasAnswer ? <div className="reflection-actions"><button className="primary" onClick={next}>Yes, you understood me →</button><button className="secondary" onClick={() => { setAnswers(current => current.map((value, index) => index === step ? "" : value)); setTextMode(false); }}>Not quite—let me try again</button></div> : <button className="text-link" onClick={() => setTextMode(!textMode)}>{textMode ? "Use my voice instead" : "I’d rather type"}</button>}</div>
     <p className="gentle-progress">Your words remain yours · You can pause at any time</p>

@@ -1,11 +1,18 @@
 /* @vitest-environment jsdom */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/components/ui/voice-powered-orb", () => ({
+  VoicePoweredOrb: () => <span data-testid="voice-heart-visual" aria-hidden="true" />,
+}));
 
 import { OurPlaceApp } from "@/app/our-place-app";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 describe("Our Place opening screen", () => {
   it("enters the established home experience", () => {
@@ -21,5 +28,33 @@ describe("Our Place opening screen", () => {
     expect(screen.getByRole("button", { name: /Talk about my day/i })).toBeTruthy();
     expect(screen.getByText("You were understood.")).toBeTruthy();
     expect(screen.getByRole("button", { name: /Call my family/i })).toBeTruthy();
+  });
+
+  it("starts and stops the semantic heart without completing a cancelled capture", () => {
+    vi.useFakeTimers();
+    render(<OurPlaceApp />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Enter Our Place" }));
+    fireEvent.click(screen.getByRole("button", { name: /Talk about my day/i }));
+
+    const idleHeart = screen.getByRole("button", { name: "Start speaking" });
+    expect(idleHeart.getAttribute("aria-pressed")).toBe("false");
+    expect(screen.getByText("Tap to speak")).toBeTruthy();
+
+    fireEvent.click(idleHeart);
+
+    const listeningHeart = screen.getByRole("button", { name: "Stop listening" });
+    expect(listeningHeart.getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByText("I’m listening…")).toBeTruthy();
+
+    fireEvent.click(listeningHeart);
+
+    const stoppedHeart = screen.getByRole("button", { name: "Start speaking" });
+    expect(stoppedHeart.getAttribute("aria-pressed")).toBe("false");
+    expect(screen.getByText("Tap to speak")).toBeTruthy();
+
+    act(() => vi.advanceTimersByTime(1400));
+    expect(screen.queryByText("I’m feeling pretty good today. The sunshine has been lovely.")).toBeNull();
+    expect(screen.queryByText(/You’re feeling pretty good today/)).toBeNull();
   });
 });
