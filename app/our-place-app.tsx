@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { VoicePoweredOrb } from "@/components/ui/voice-powered-orb";
 
 type View = "opening" | "home" | "checkin" | "complete" | "family" | "memories" | "invite";
-type Reply = { from: string; message: string; voice?: boolean };
+type Reply = { from: string; message: string };
 type ExtractionItem = {
   kind: "life_update" | "memory" | "request" | "possible_concern";
   title: string;
@@ -89,10 +89,10 @@ export function OurPlaceApp() {
   const [listening, setListening] = useState(false);
   const [answers, setAnswers] = useState(["", "", ""]);
   const [textMode, setTextMode] = useState(false);
-  const [reply, setReply] = useState<Reply>({ from: "Sarah", message: "I listened to what you shared. I’ll call after dinner.", voice: true });
-  const [reaction, setReaction] = useState("I hear you");
+  const [reply, setReply] = useState<Reply | null>(null);
+  const [replyDraft, setReplyDraft] = useState("");
+  const [reaction, setReaction] = useState("");
   const [commitments, setCommitments] = useState<Record<string, string>>({});
-  const [routine, setRoutine] = useState(false);
   const [extraction, setExtraction] = useState<ExtractionResult | null>(null);
   const [extractionStatus, setExtractionStatus] = useState<ExtractionStatus>("idle");
   const [extractionError, setExtractionError] = useState("");
@@ -150,7 +150,7 @@ export function OurPlaceApp() {
     cancelCapture();
     extractionRequest.current += 1;
     setStep(0); setAnswers(["", "", ""]); setListening(false); setTextMode(false);
-    setExtraction(null); setExtractionStatus("idle"); setExtractionError(""); setApprovedExtraction(null); setCommitments({}); setView("checkin");
+    setExtraction(null); setExtractionStatus("idle"); setExtractionError(""); setApprovedExtraction(null); setCommitments({}); setReply(null); setReplyDraft(""); setReaction(""); setView("checkin");
   }
 
   function capture() {
@@ -174,7 +174,7 @@ export function OurPlaceApp() {
   function editUpdate() {
     cancelCapture();
     extractionRequest.current += 1;
-    setExtraction(null); setExtractionStatus("idle"); setExtractionError(""); setApprovedExtraction(null); setCommitments({});
+    setExtraction(null); setExtractionStatus("idle"); setExtractionError(""); setApprovedExtraction(null); setCommitments({}); setReply(null); setReplyDraft(""); setReaction("");
     setStep(0); setListening(false); setTextMode(false); setView("checkin");
   }
 
@@ -196,10 +196,10 @@ export function OurPlaceApp() {
   return <main className={`app-shell ${familyMode ? "family-shell" : "elder-shell"}`}>
     {view !== "opening" && <Header familyMode={familyMode} view={view} go={go} />}
     {view === "opening" && <Opening onEnter={() => setView("home")} />}
-    {view === "home" && <Home onBegin={begin} reply={reply} routine={routine} setRoutine={setRoutine} onInvite={() => setView("invite")} approvedExtraction={approvedExtraction} commitments={commitments} />}
+    {view === "home" && <Home onBegin={begin} reply={reply} reaction={reaction} onInvite={() => setView("invite")} approvedExtraction={approvedExtraction} commitments={commitments} />}
     {view === "checkin" && <CheckIn {...{ step, listening, answers, textMode, textarea, setAnswers, capture, next }} setTextMode={changeTextMode} onExit={() => { cancelCapture(); setListening(false); setView("home"); }} />}
     {view === "complete" && <Complete status={extractionStatus} error={extractionError} extraction={extraction} approved={Boolean(approvedExtraction)} onRetry={() => void loadExtraction(answers)} onEdit={editUpdate} onApprove={setApprovedExtraction} onHome={() => setView("home")} onFamily={() => go("family")} />}
-    {view === "family" && approvedExtraction && <Family extraction={approvedExtraction} {...{ reaction, setReaction, commitments, setCommitments, setReply }} onMemories={() => go("memories")} />}
+    {view === "family" && approvedExtraction && <Family extraction={approvedExtraction} {...{ reaction, setReaction, commitments, setCommitments, reply, setReply, replyDraft, setReplyDraft }} onMemories={() => go("memories")} />}
     {view === "memories" && approvedExtraction && <Memories extraction={approvedExtraction} />}
     {view === "invite" && <Invitation onAccept={() => setView("home")} />}
   </main>;
@@ -250,14 +250,15 @@ function Opening({ onEnter }: { onEnter: () => void }) {
 function Header({ familyMode, view, go }: { familyMode: boolean; view: View; go: (v: View) => void }) {
   return <header className="topbar">
     <button className="brand" onClick={() => go(familyMode ? "family" : "home")} aria-label="Our Place home"><span className="brand-mark" aria-hidden="true"><Image src="/our-place-family-mark.png" alt="" width={52} height={52} priority unoptimized /></span><span>Our Place</span></button>
-    {familyMode ? <nav aria-label="Family demo navigation"><span className="mode-pill">Family demo · Sarah’s view</span><button className={view === "family" ? "active" : ""} onClick={() => go("family")}>Today</button><button className={view === "memories" ? "active" : ""} onClick={() => go("memories")}>Stories</button><button onClick={() => go("home")}>Demo: Evelyn’s view</button></nav> : <button className="help-button" aria-label="Get help">Help</button>}
+    {familyMode && <nav aria-label="Family demo navigation"><span className="mode-pill">Family demo · Sarah’s view</span><button className={view === "family" ? "active" : ""} onClick={() => go("family")}>Today</button><button className={view === "memories" ? "active" : ""} onClick={() => go("memories")}>Stories</button><button onClick={() => go("home")}>Demo: Evelyn’s view</button></nav>}
   </header>;
 }
 
-function Home({ onBegin, reply, routine, setRoutine, onInvite, approvedExtraction, commitments }: { onBegin: () => void; reply: Reply; routine: boolean; setRoutine: (v: boolean) => void; onInvite: () => void; approvedExtraction: RoutineExtraction | null; commitments: Record<string, string> }) {
+function Home({ onBegin, reply, reaction, onInvite, approvedExtraction, commitments }: { onBegin: () => void; reply: Reply | null; reaction: string; onInvite: () => void; approvedExtraction: RoutineExtraction | null; commitments: Record<string, string> }) {
   const committedRequest = approvedExtraction?.items
     .map((item, index) => ({ item, person: commitments[extractionItemKey(item, index)] }))
     .find(({ item, person }) => item.kind === "request" && person);
+  const hasFamilyActivity = Boolean(reply || reaction || committedRequest);
 
   return <section className="home page">
     <div className="welcome-copy">
@@ -268,15 +269,14 @@ function Home({ onBegin, reply, routine, setRoutine, onInvite, approvedExtractio
       <h1>Good morning,<br/><em>Evelyn.</em></h1>
       <p className="plain-promise"><strong>Whatever today has been, you can share it here.</strong><br/>We’ll listen carefully, then help your family understand.</p>
       <button className="primary jumbo" onClick={onBegin}><span className="mic" aria-hidden="true">●</span><span>Talk about my day<small>There are no right answers</small></span></button>
-      <div className="elder-actions"><button className="secondary call-button">☎ Call my family</button><button className={`secondary routine-button ${routine ? "selected" : ""}`} onClick={() => setRoutine(!routine)}>{routine ? "✓ I’ll check in at 10:00" : "Remind me at 10:00"}</button></div>
     </div>
-    <aside className="reply-card" aria-label="Message from Sarah">
-      <div className="reply-top"><span className="avatar">S</span><div><span className="eyebrow">Sarah listened</span><h2>You were understood.</h2></div></div>
-      <blockquote>“{reply.message}”</blockquote>
-      {reply.voice && <button className="play-reply"><span aria-hidden="true">▶</span><span>Hear Sarah’s message<small>15 seconds</small></span></button>}
+    <aside className={`reply-card ${hasFamilyActivity ? "" : "reply-card-empty"}`} aria-label="Family response in this demo">
+      {hasFamilyActivity ? <div className="reply-top"><span className="avatar">S</span><div><span className="eyebrow">Sarah responded in this demo</span><h2>What Sarah chose to share</h2></div></div> : <div className="reply-empty" role="status"><span aria-hidden="true">♡</span><div><span className="eyebrow">Family response</span><h2>Nothing from Sarah yet.</h2><p>After you approve a check-in, this demo can show a reaction, written reply, or offer to help that Sarah chooses.</p></div></div>}
+      {reaction && <p className="reply-reaction"><span aria-hidden="true">♡</span><strong>{reaction}</strong></p>}
+      {reply && <blockquote>“{reply.message}”</blockquote>}
       {committedRequest && <div className="promise-note"><span>✓</span><p><strong>{committedRequest.person} offered to help: {committedRequest.item.title}.</strong><br/>From what you shared: “{committedRequest.item.source_quote}”</p></div>}
     </aside>
-    <div className="reassurance"><span className="shield">✓</span><p><strong>Your words stay in the family.</strong><br/>Only the update you approve is shared.</p></div>
+    <div className="reassurance"><span className="shield">✓</span><p><strong>Your words remain yours.</strong><br/>Only the update you approve can appear in the family demo.</p></div>
     <button className="family-entry" onClick={onInvite}>See how a family invitation works →</button>
   </section>;
 }
@@ -330,24 +330,29 @@ function Complete({ status, error, extraction, approved, onRetry, onEdit, onAppr
 
   return <section className="complete page narrow">
     <div className="success-mark" aria-hidden="true">♡</div><span className="eyebrow">Heard with care</span>
-    <h1>{approved ? "Your family can meet you where you are today." : "Did we understand you?"}</h1>
-    {!approved && <div className="share-preview"><div><span className="avatar">E</span><p><small>Today’s check-in</small><strong>{extraction.tone}</strong></p></div><p>{extraction.summary}</p><div className="review-reflection"><small>A careful reflection</small><p>{extraction.reflection}</p></div><section className="approval-items" aria-labelledby="approval-items-heading"><h2 id="approval-items-heading">Everything your family will see</h2>{extraction.items.length > 0 ? extraction.items.map((item, index) => <article className="approval-item" key={extractionItemKey(item, index)}><span className="approval-item-kind">{EXTRACTION_KIND_LABELS[item.kind]}</span><h3>{item.title}</h3><p>{item.detail}</p><blockquote><small>From your words</small>“{item.source_quote}”</blockquote></article>) : <p className="approval-empty">No additional updates, memories, requests, or possible concerns were found in your words.</p>}</section><button className="edit-link" onClick={onEdit}>Edit this update</button></div>}
-    {approved ? <div className="delivered"><div className="family-faces"><span>S</span><span>D</span></div><p><strong>Shared with Sarah and Daniel</strong><br/>They’re invited to listen first, then respond.</p></div> : <button className="primary wide" onClick={() => onApprove(extraction)}>Yes, this feels true to me</button>}
+    <h1>{approved ? "Your check-in is ready in this demo." : "Did we understand you?"}</h1>
+    {!approved && <div className="share-preview"><div><span className="avatar">E</span><p><small>Today’s check-in</small><strong>{extraction.tone}</strong></p></div><p>{extraction.summary}</p><div className="review-reflection"><small>A careful reflection</small><p>{extraction.reflection}</p></div><section className="approval-items" aria-labelledby="approval-items-heading"><h2 id="approval-items-heading">Everything the family view can show</h2>{extraction.items.length > 0 ? extraction.items.map((item, index) => <article className="approval-item" key={extractionItemKey(item, index)}><span className="approval-item-kind">{EXTRACTION_KIND_LABELS[item.kind]}</span><h3>{item.title}</h3><p>{item.detail}</p><blockquote><small>From your words</small>“{item.source_quote}”</blockquote></article>) : <p className="approval-empty">No additional updates, memories, requests, or possible concerns were found in your words.</p>}</section><button className="edit-link" onClick={onEdit}>Edit this update</button></div>}
+    {approved ? <div className="approval-ready"><div className="family-faces"><span>S</span><span>D</span></div><p><strong>Approved and ready in this demo</strong><br/>Nothing was delivered. You can now open the family view to demonstrate a response.</p></div> : <button className="primary wide" onClick={() => onApprove(extraction)}>Yes, this feels true to me</button>}
     {approved && <><button className="primary wide" onClick={onHome}>Back to my home</button><button className="text-link demo-family-link" onClick={onFamily}>Open the family side of this demo →</button></>}
   </section>;
 }
 
-function Family({ extraction, reaction, setReaction, commitments, setCommitments, setReply, onMemories }: { extraction: RoutineExtraction; reaction: string; setReaction: (v: string) => void; commitments: Record<string,string>; setCommitments: React.Dispatch<React.SetStateAction<Record<string,string>>>; setReply: (v: Reply) => void; onMemories: () => void }) {
-  const [recording, setRecording] = useState(false); const [sent, setSent] = useState(false);
+function Family({ extraction, reaction, setReaction, commitments, setCommitments, reply, setReply, replyDraft, setReplyDraft, onMemories }: { extraction: RoutineExtraction; reaction: string; setReaction: (v: string) => void; commitments: Record<string,string>; setCommitments: React.Dispatch<React.SetStateAction<Record<string,string>>>; reply: Reply | null; setReply: (v: Reply | null) => void; replyDraft: string; setReplyDraft: (v: string) => void; onMemories: () => void }) {
   const offerHelp = (requestId: string) => setCommitments(current => ({ ...current, [requestId]: "Sarah" }));
   const requests = extraction.items.map((item, index) => ({ item, requestId: extractionItemKey(item, index) })).filter(({ item }) => item.kind === "request");
   const memory = extraction.items.find((item) => item.kind === "memory");
-  function voiceReply() { setRecording(true); window.setTimeout(() => { setRecording(false); setSent(true); setReply({ from: "Sarah", message: "I listened to what you shared. I’ll call after dinner.", voice: true }); }, 1200); }
+  const trimmedReply = replyDraft.trim();
+  const replyIsSaved = Boolean(reply && reply.message === trimmedReply);
+  function saveReply(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!trimmedReply) return;
+    setReply({ from: "Sarah", message: trimmedReply });
+  }
   return <section className="family page">
-    <div className="page-title"><div><span className="eyebrow">Evelyn shared 8 minutes ago</span><h1>Come close before you act.</h1><p>Receive what she said, reflect what you heard, then respond in your own way.</p></div><button className="secondary">☎ Call Evelyn</button></div>
+    <div className="page-title"><div><span className="eyebrow">Evelyn approved this check-in</span><h1>Come close before you act.</h1><p>Receive what she said, reflect what you heard, then respond in your own way.</p></div></div>
     <div className="family-priority">
-      <article className="summary-card"><div className="summary-head"><span className="avatar large">E</span><div><span className="status">● FROM EVELYN’S CHECK-IN</span><h2>What she wants you to understand</h2></div></div><p className="summary-text">{extraction.summary}</p><div className="reflective-note"><small>A gentle reflection</small><p>{extraction.reflection}</p></div><div className="reaction-row" aria-label="Reflect back what you heard">{["I hear you", "That memory matters", "I’m here with you"].map(item => <button key={item} className={reaction === item ? "chosen" : ""} onClick={() => setReaction(item)}>{reaction === item ? "✓ " : "♡ "}{item}</button>)}</div><p className="reaction-status">Evelyn will see your response exactly as written.</p></article>
-      <article className="reply-panel"><span className="eyebrow">Respond as yourself</span><h2>You don’t need perfect words.</h2><p>Begin with what you heard. Let Evelyn know how her words reached you.</p><div className="reply-guide"><span>1</span><p><strong>Reflect</strong><br/>“It sounds like…”</p><span>2</span><p><strong>Respond</strong><br/>“What I want you to know is…”</p></div><button className={`voice-reply ${recording ? "recording" : ""}`} onClick={voiceReply}><span>{recording ? "■" : "●"}</span>{recording ? "Listening…" : sent ? "✓ Voice reply sent" : "Say what you heard"}</button><small>This is a family message, not counseling.</small></article>
+      <article className="summary-card"><div className="summary-head"><span className="avatar large">E</span><div><span className="status">● FROM EVELYN’S CHECK-IN</span><h2>What she wants you to understand</h2></div></div><p className="summary-text">{extraction.summary}</p><div className="reflective-note"><small>A gentle reflection</small><p>{extraction.reflection}</p></div><div className="reaction-row" aria-label="Reflect back what you heard">{["I hear you", "That memory matters", "I’m here with you"].map(item => <button key={item} className={reaction === item ? "chosen" : ""} aria-pressed={reaction === item} onClick={() => setReaction(reaction === item ? "" : item)}>{reaction === item ? "✓ " : "♡ "}{item}</button>)}</div><p className="reaction-status" aria-live="polite">{reaction ? `Evelyn would see “${reaction}” in this demo.` : "Choose a reaction to show what Evelyn would see in this demo."}</p></article>
+      <article className="reply-panel"><span className="eyebrow">Respond as yourself</span><h2>You don’t need perfect words.</h2><p>Begin with what you heard. Let Evelyn know how her words reached you.</p><div className="reply-guide"><span>1</span><p><strong>Reflect</strong><br/>“It sounds like…”</p><span>2</span><p><strong>Respond</strong><br/>“What I want you to know is…”</p></div><form className="reply-composer" onSubmit={saveReply}><label htmlFor="family-reply">Write a reply for Evelyn</label><p id="family-reply-help">This saves the exact words in this browser demo. It does not send a message.</p><textarea id="family-reply" aria-describedby="family-reply-help" value={replyDraft} onChange={(event) => setReplyDraft(event.target.value)} placeholder="Write what you want Evelyn to see…"/><button className="primary" type="submit" disabled={!trimmedReply}>{reply ? "Save updated reply in this demo" : "Save reply in this demo"}</button></form>{replyIsSaved && <p className="reply-confirmation" role="status">Sarah’s reply was saved in this demo. Evelyn can now see it here.</p>}<small>This is a family message, not counseling.</small></article>
       {requests.length > 0 && <article className="needs-card"><span className="eyebrow">Offer practical help</span><h2>{requests.length === 1 ? "One request you can help with" : `${requests.length} requests you can help with`}</h2>{requests.map(({ item, requestId }) => <FamilyCommitment key={requestId} request={item.title} sourceQuote={item.source_quote} committedBy={commitments[requestId]} onOfferHelp={() => offerHelp(requestId)} />)}<p className="safe-note">Each request is quoted from Evelyn’s own words—not medical advice.</p></article>}
       {memory && <article className="memory-feature"><span className="eyebrow">A story Evelyn shared</span><blockquote>“{memory.source_quote}”</blockquote><p className="question-note">{memory.detail}</p><button className="text-link" onClick={onMemories}>More open invitations →</button></article>}
     </div>
@@ -366,5 +371,5 @@ function Memories({ extraction }: { extraction: RoutineExtraction }) {
 
 function Invitation({ onAccept }: { onAccept: () => void }) {
   const [accepted, setAccepted] = useState(false);
-  return <section className="invitation page narrow"><div className="invite-mark"><Image src="/our-place-family-mark.png" alt="A multigenerational family embracing in one circle" width={156} height={156} unoptimized /></div><span className="eyebrow">A personal invitation from Sarah</span><h1>{accepted ? "There is room for you here, Evelyn." : "Sarah would like to understand more of your days."}</h1><p>{accepted ? "Our Place will be waiting without expectation. You decide when to speak and what your family may hear." : "Our Place is a warm place to speak in your own way—and a gentle invitation for family to listen with care."}</p>{!accepted ? <div className="invite-steps"><div><span>1</span><p><strong>Speak as you are</strong><br/>There is no right mood and no right answer.</p></div><div><span>2</span><p><strong>Feel accurately heard</strong><br/>You can correct anything that doesn’t feel true.</p></div><div><span>3</span><p><strong>Invite family closer</strong><br/>They receive your words before they offer help.</p></div></div> : <div className="success-mark">✓</div>}<button className="primary wide" onClick={() => accepted ? onAccept() : setAccepted(true)}>{accepted ? "Enter my quiet space" : "Create this space together"}</button>{!accepted && <button className="text-link">I’d like Sarah beside me</button>}<p className="invite-trust">No judgment · No medical monitoring · Your words stay yours</p></section>;
+  return <section className="invitation page narrow"><div className="invite-mark"><Image src="/our-place-family-mark.png" alt="A multigenerational family embracing in one circle" width={156} height={156} unoptimized /></div><span className="eyebrow">Family invitation example</span><h1>{accepted ? "There is room for you here, Evelyn." : "See how Sarah could invite Evelyn in."}</h1><p>{accepted ? "Our Place will be waiting without expectation. You decide when to speak and what the family demo may show." : "This example shows a warm invitation to speak in your own way—and a gentle place for family to respond with care."}</p>{!accepted ? <div className="invite-steps"><div><span>1</span><p><strong>Speak as you are</strong><br/>There is no right mood and no right answer.</p></div><div><span>2</span><p><strong>Feel accurately heard</strong><br/>You can correct anything that doesn’t feel true.</p></div><div><span>3</span><p><strong>Invite family closer</strong><br/>Her approved words come before any response.</p></div></div> : <div className="success-mark">✓</div>}<button className="primary wide" onClick={() => accepted ? onAccept() : setAccepted(true)}>{accepted ? "Enter my quiet space" : "Create this space together"}</button><p className="invite-trust">No judgment · No medical monitoring · Your words stay yours</p></section>;
 }
