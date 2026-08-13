@@ -224,8 +224,13 @@ test("keeps safety, extraction, opening-screen, and voice-heart boundaries in so
   assert.match(opening, /aria-labelledby="opening-title"/);
   assert.match(opening, /<h1 id="opening-title"/);
   assert.doesNotMatch(opening, /Cofounder|streaks?|scores?|quests?|coins?|badges?|completion percentages?|progress rings?|monitoring|diagnosis/i);
-  assert.match(client, /Good morning/);
+  assert.match(client, /There is room for whatever today has been/);
   assert.match(client, /Talk about my day/);
+  assert.match(client, /What Our Place holds/);
+  assert.match(client, /Words held with care/);
+  assert.match(client, /Space to say how today feels/);
+  assert.match(client, /Family close by/);
+  assert.match(client, /The stories that make life rich/);
   assert.match(client, /Nothing from Sarah yet/);
   assert.match(client, /useState<Reply \| null>\(null\)/);
   assert.doesNotMatch(client, /Call my family|Remind me at 10:00|Get help|Hear Sarah’s message|Call Evelyn|I’d like Sarah beside me/);

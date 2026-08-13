@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/ui/voice-powered-orb", () => ({
@@ -34,8 +34,23 @@ describe("Our Place opening screen", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Enter Our Place" }));
 
-    expect(screen.getByRole("heading", { level: 1, name: /Good morning,\s*Evelyn\./i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Talk about my day/i })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "There is room for whatever today has been." })).toBeTruthy();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+
+    const values = screen.getByRole("list", { name: "What Our Place holds" });
+    for (const [label, description] of [
+      ["Love", "Words held with care"],
+      ["Health", "Space to say how today feels"],
+      ["Company", "Family close by"],
+      ["Prosperity", "The stories that make life rich"],
+    ]) {
+      expect(within(values).getByText(label)).toBeTruthy();
+      expect(within(values).getByText(description)).toBeTruthy();
+    }
+    expect(within(values).queryByRole("button")).toBeNull();
+    expect(within(values).queryByRole("link")).toBeNull();
+
+    expect(screen.getByRole("button", { name: "Talk about my day" })).toBeTruthy();
     expect(screen.getByText("Nothing from Sarah yet.")).toBeTruthy();
     expect(screen.queryByText(/I listened to what you shared/i)).toBeNull();
     expect(screen.queryByRole("button", { name: /Call my family|Remind me|Get help|Hear Sarah’s message/i })).toBeNull();

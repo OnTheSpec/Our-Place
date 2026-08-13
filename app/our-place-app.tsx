@@ -260,17 +260,33 @@ function Home({ onBegin, reply, reaction, onInvite, approvedExtraction, commitme
     .find(({ item, person }) => item.kind === "request" && person);
   const hasFamilyActivity = Boolean(reply || reaction || committedRequest);
 
-  return <section className="home page">
-    <div className="welcome-copy">
-      <div className="hero-opening">
-        <div className="hero-mark"><Image src="/our-place-family-mark.png" alt="Four generations held together in a circle of changing light" width={148} height={148} priority unoptimized /></div>
-        <div><span className="eyebrow">A warm place to stay close</span><p className="hero-caption">One circle. Every voice held.</p></div>
-      </div>
-      <h1>Good morning,<br/><em>Evelyn.</em></h1>
-      <p className="plain-promise"><strong>Whatever today has been, you can share it here.</strong><br/>We’ll listen carefully, then help your family understand.</p>
-      <button className="primary jumbo" onClick={onBegin}><span className="mic" aria-hidden="true">●</span><span>Talk about my day<small>There are no right answers</small></span></button>
+  return <section className="home page home-garden" aria-labelledby="home-title">
+    <div className="home-shape-layer" aria-hidden="true">
+      <span className="home-perimeter-shape home-perimeter-heart" />
+      <span className="home-perimeter-shape home-perimeter-flower" />
+      <span className="home-perimeter-shape home-perimeter-pebbles" />
+      <span className="home-perimeter-shape home-perimeter-seed" />
     </div>
+    <div className="home-intro">
+      <p className="eyebrow">Welcome back, Evelyn</p>
+      <h1 id="home-title">There is room for whatever today has been.</h1>
+      <p>Speak freely. Nothing reaches your family until you say it feels true.</p>
+    </div>
+    <div className="home-heart-action">
+      <button className="home-heart-button" aria-label="Talk about my day" onClick={onBegin}>
+        <span className="home-heart-radiance" aria-hidden="true" />
+        <span className="home-heart-copy"><strong>Talk about my day</strong><small>There are no right answers.</small></span>
+      </button>
+      <p>Tap the heart when you’re ready.</p>
+    </div>
+    <ul className="home-values" aria-label="What Our Place holds">
+      <li className="home-value home-value-love"><span className="home-value-shape" aria-hidden="true" /><strong>Love</strong><span>Words held with care</span></li>
+      <li className="home-value home-value-health"><span className="home-value-shape" aria-hidden="true" /><strong>Health</strong><span>Space to say how today feels</span></li>
+      <li className="home-value home-value-company"><span className="home-value-shape" aria-hidden="true" /><strong>Company</strong><span>Family close by</span></li>
+      <li className="home-value home-value-prosperity"><span className="home-value-shape" aria-hidden="true" /><strong>Prosperity</strong><span>The stories that make life rich</span></li>
+    </ul>
     <aside className={`reply-card ${hasFamilyActivity ? "" : "reply-card-empty"}`} aria-label="Family response in this demo">
+      <p className="home-company-label">Company · Family close by</p>
       {hasFamilyActivity ? <div className="reply-top"><span className="avatar">S</span><div><span className="eyebrow">Sarah responded in this demo</span><h2>What Sarah chose to share</h2></div></div> : <div className="reply-empty" role="status"><span aria-hidden="true">♡</span><div><span className="eyebrow">Family response</span><h2>Nothing from Sarah yet.</h2><p>After you approve a check-in, this demo can show a reaction, written reply, or offer to help that Sarah chooses.</p></div></div>}
       {reaction && <p className="reply-reaction"><span aria-hidden="true">♡</span><strong>{reaction}</strong></p>}
       {reply && <blockquote>“{reply.message}”</blockquote>}
