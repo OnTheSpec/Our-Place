@@ -1,0 +1,15 @@
+My family loves our older relatives, but no one knows what happens between phone calls. Our Place is a warm, voice-first check-in that helps an older adult feel heard and gives family one clear reason to come closer.
+
+Evelyn begins with one large, welcoming action: Talk about my day. The interface uses large type, generous spacing, clear contrast, and a typed fallback. This contest walkthrough uses synthetic fixture answers so judges can run it without an account, microphone, private data, or API key.
+
+Three gentle questions invite Evelyn to share how today feels, what stayed with her, and anything she wants her family to understand or help with. After each answer, the app reflects her words back tentatively. She can correct the reflection before anything moves forward.
+
+Evelyn approves the exact family update. GPT-5.6 has a narrow, useful role: the server-only OpenAI Responses API turns free-form answers into a short factual summary, a memory, practical requests, and cautious possible concerns. Every extracted item requires a supporting source quote. Obvious urgent language takes a deterministic safety path before the model call. Our Place never diagnoses and never claims that help was dispatched.
+
+On the family side, Sarah is invited to receive before she acts. She can reflect what she heard, respond in her own voice, and take responsibility for a concrete need such as bringing milk or checking a flickering light.
+
+A passing memory becomes an open invitation for the next real call. Only an approved memory from this check-in appears in Stories.
+
+Codex was the primary development partner. It helped focus the idea into this complete interaction, then accelerated the architecture, accessible interface, database schema, GPT-5.6 structured-output contract, safety boundaries, tests, visual identity, and release workflow.
+
+Our Place does not replace family contact. It makes family contact more likely.

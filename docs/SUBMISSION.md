@@ -5,7 +5,7 @@
 - **Project title:** Our Place
 - **Tagline:** A warm place to stay close.
 - **Category:** Apps for Your Life
-- **Public demo:** `https://still-here-family-checkin.georgej.chatgpt.site/` (currently requires ChatGPT sign-in; judges can always use the credential-free repository demo)
+- **Judge-facing demo URL:** The Sites project retains a historical private hostname and must use an Our Place-branded custom URL before judging.
 - **Repository URL:** `https://github.com/OnTheSpec/Our-Place`
 - **Public YouTube demo:** `[ADD PUBLIC YOUTUBE URL]`
 - **Codex /feedback Session ID:** `019f73ff-7acf-78d3-9309-b3b609accd64`
@@ -20,7 +20,7 @@ Families love one another, but the texture of an older relative's ordinary days 
 
 The elder experience begins with one large action: **Talk about my day**. Three gentle prompts invite the person to describe how today felt, what stayed with them, and anything they want their family to understand or help with. Before anything is shared, Our Place reflects the person's words back and asks whether it stayed close to what they meant.
 
-GPT-5.6 then turns the approved check-in into a short, fact-grounded family update. It separates ordinary life updates, memories, practical requests, and possible concerns, with a supporting quote for every extracted item. The family side encourages a reciprocal loop: receive what was said, reflect what was heard, respond personally, and claim concrete help such as picking up milk or checking a flickering light. A memory archive turns passing stories into open invitations for the next real conversation.
+GPT-5.6 then turns the approved check-in into a short, fact-grounded family update. It separates ordinary life updates, memories, practical requests, and possible concerns, with a supporting quote for every extracted item. The family side encourages a reciprocal loop: receive what was said, reflect what was heard, respond personally, and offer help with a source-quoted request such as picking up milk or checking a flickering light. The Stories view turns an approved memory from the current extraction into an open invitation for the next real conversation.
 
 Our Place is intentionally not medical software. It does not diagnose, assess cognitive decline, or claim to monitor an older adult's wellbeing. Obvious urgent language follows a deterministic safety path that recommends direct human or emergency contact without pretending that the app has dispatched help.
 
@@ -42,7 +42,7 @@ GPT-5.6 performs the narrow task where language understanding creates real produ
 
 ## How Codex was used
 
-Codex was the primary development partner for the project. It helped reduce the original broad mission into a contest-sized golden path; designed the architecture and data model; implemented the elder, family, invitation, and archive experiences; built the GPT-5.6 structured-extraction route; reviewed safety and privacy boundaries; generated and integrated the visual identity; and repeatedly ran build, lint, and server-render verification while the UI was refined.
+Codex was the primary development partner for the project. It helped reduce the original broad mission into a contest-sized golden path; designed the architecture and data model; implemented the elder, family, invitation, and Stories experiences; built the GPT-5.6 structured-extraction route; reviewed safety and privacy boundaries; generated and integrated the visual identity; and repeatedly ran build, lint, and server-render verification while the UI was refined.
 
 The most important decisions were made deliberately with Codex rather than hidden behind generation: keep one household and one repeated moment, require elder approval before sharing, keep every derived item traceable to a quote, never position AI companionship as a replacement for family, and preserve a credential-free demo path.
 
@@ -56,7 +56,7 @@ The hardest design problem was making AI useful without letting it become an int
 - A one-button elder experience that can be demonstrated without accounts or permissions
 - User correction and approval before family sharing
 - Quote-grounded extraction with a deterministic urgent-language boundary
-- Reciprocal family responses, named help commitments, and an invitation-driven memory archive
+- Reciprocal family responses, named help commitments, and an invitation-driven Stories view
 - A warm, original identity and accessible responsive interface
 
 ## What we learned
@@ -91,15 +91,15 @@ Show the approved update and its milk and kitchen-light tags.
 
 ### 1:25–2:02 — Family response
 
-Open the family dashboard, choose **I hear you**, send the demo voice reply, and claim one task.
+Open the family dashboard, choose **I hear you**, send the demo voice reply, and offer help with one request.
 
 > Sarah is invited to receive before she acts. She can reflect what she heard, respond in her own voice, and take responsibility for a concrete need. Our Place never claims to diagnose or replace professional or emergency care.
 
-### 2:02–2:24 — Memory archive
+### 2:02–2:24 — Stories
 
 Open **Stories** and pause on the porch-swing memory.
 
-> A passing memory becomes an open invitation for the next real call. Evelyn remains the author and can remove a story at any time.
+> A passing memory becomes an open invitation for the next real call. Only an approved memory from this check-in appears in Stories.
 
 ### 2:24–2:50 — Codex and close
 

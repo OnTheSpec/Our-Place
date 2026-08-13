@@ -1,5 +1,5 @@
-import { StillHereApp } from "./still-here-app";
+import { OurPlaceApp } from "./our-place-app";
 
 export default function Home() {
-  return <StillHereApp />;
+  return <OurPlaceApp />;
 }

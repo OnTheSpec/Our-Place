@@ -6,6 +6,10 @@ A warm, voice-first family check-in for older adults. The contest MVP demonstrat
 
 Our Place does not replace family contact. It makes family contact more likely.
 
+## Repository identity
+
+This repository is solely the Our Place older-adult/family connection product. It is not a household chore board or a general family organizer; [`docs/PRODUCT_BOUNDARY.md`](docs/PRODUCT_BOUNDARY.md) defines the product promise and explicit exclusions.
+
 ## Run it
 
 Requirements: Node.js 22.13+.
@@ -24,7 +28,7 @@ No account, microphone permission, API key, database, or private data is require
 1. Open the home page and choose **Talk about my day**.
 2. Tap the voice circle once per prompt. The fixture fills three synthetic answers after a short listening animation.
 3. Confirm each reflection, approve the family update, and open the family side of the demo.
-4. Try a family response, claim a practical request, and open the story archive.
+4. Try a family response, offer help with one practical request, and open **Stories** to see the approved memory from this check-in.
 
 The fixture portrays Evelyn, a fictional older adult. Every person, quote, memory, request, and relationship in the demo is synthetic.
 
@@ -33,10 +37,10 @@ The fixture portrays Evelyn, a fictional older adult. Every person, quote, memor
 - Responsive, keyboard-friendly older-adult home and three-question check-in
 - “Circle of Changing Light” overhead family-embrace identity and an accessible, Klee-inspired relational color system
 - Simulated voice capture plus a text fallback
-- Family dashboard with summary, requests, cautious tone signal, and check-in rhythm
+- Family view with the approved summary, source-grounded requests, and personal responses
 - Reciprocal family reactions, short voice replies, and named help commitments
 - Gentle daily check-in preference and personal family invitation onboarding
-- Family memory archive with prompts for the next call
+- A Stories view containing only memories from the current approved extraction, with prompts for the next call
 - Server-only structured extraction endpoint with input validation, schema-constrained output, urgent-language fast path, and credential-free demo fallback
 - D1/Drizzle data model for households, people, check-ins, and extracted items
 
