@@ -15,6 +15,13 @@
       "when": 1784428841087,
       "tag": "0001_loose_morlun",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786296790169,
+      "tag": "0002_bent_malice",
+      "breakpoints": true
     }
   ]
 }
