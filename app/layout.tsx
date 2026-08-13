@@ -34,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: "Our Place — A warm place to stay close",
       description: "Helping families listen, understand, and stay close.",
-      images: [{ url: "/og.png", width: 1672, height: 941, alt: "Our Place — A warm place to stay close, with a family embracing at home" }],
+      images: [{ url: "/og.png", width: 1672, height: 941, alt: "Our Place — A warm abstract family circle in rose, sage, water, and gold" }],
     },
     twitter: {
       card: "summary_large_image",

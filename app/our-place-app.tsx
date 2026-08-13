@@ -206,44 +206,51 @@ export function OurPlaceApp() {
 }
 
 function Opening({ onEnter }: { onEnter: () => void }) {
-  const steps = useRef<HTMLDivElement>(null);
+  const steps = useRef<HTMLOListElement>(null);
 
   return <section className="opening-screen" aria-labelledby="opening-title">
-    <Image
-      className="opening-world-image"
-      src="/our-place-family-world.webp"
-      alt="A multigenerational family embracing together on their porch at golden-hour dusk"
-      fill
-      sizes="100vw"
-      priority
-      unoptimized
-    />
-    <div className="opening-world-wash" aria-hidden="true" />
     <header className="opening-bar">
       <div className="opening-brand">
-        <span className="opening-brand-mark" aria-hidden="true"><Image src="/our-place-family-mark.png" alt="" width={56} height={56} priority unoptimized /></span>
+        <span className="opening-brand-mark" aria-hidden="true"><Image src="/our-place-family-mark.png" alt="" width={48} height={48} unoptimized /></span>
         <span><strong>Our Place</strong><small>Family stays close here</small></span>
       </div>
       <p className="opening-trust"><span aria-hidden="true">♡</span> Your words remain yours.</p>
     </header>
-    <div className="opening-copy">
-      <p className="opening-kicker">A warm place to stay close</p>
-      <h1 id="opening-title">The small things are how we stay close.</h1>
-      <p className="opening-promise">Speak about your day in your own words. Check what we heard, then choose what your family may see.</p>
-      <div className="opening-actions">
-        <button className="primary opening-enter" onClick={onEnter}>Enter Our Place</button>
-        <button className="opening-how" onClick={() => steps.current?.focus()}>See how it works <span aria-hidden="true">↓</span></button>
+
+    <div className="opening-main">
+      <div className="opening-copy">
+        <p className="opening-kicker">A warm place to stay close</p>
+        <h1 id="opening-title">The small things are how we stay close.</h1>
+        <p className="opening-promise">Speak about your day in your own words. Check what we heard, then choose what your family may see.</p>
+        <div className="opening-actions">
+          <button className="primary opening-enter" onClick={onEnter}>Enter Our Place <span aria-hidden="true">→</span></button>
+          <button className="opening-how" onClick={() => steps.current?.focus()}>See how it works <span aria-hidden="true">↓</span></button>
+        </div>
+      </div>
+
+      <div className="opening-constellation">
+        <div className="opening-constellation-forms">
+          <span className="opening-orbit-form opening-orbit-love" aria-hidden="true" />
+          <span className="opening-orbit-form opening-orbit-health" aria-hidden="true" />
+          <span className="opening-orbit-form opening-orbit-company" aria-hidden="true" />
+          <span className="opening-orbit-form opening-orbit-prosperity" aria-hidden="true" />
+        </div>
+        <div className="opening-constellation-center">
+          <span className="opening-halo" aria-hidden="true" />
+          <Image className="opening-constellation-mark" src="/our-place-family-mark.png" alt="Our Place family circle" width={224} height={224} priority unoptimized />
+        </div>
       </div>
     </div>
-    <aside className="opening-status" aria-label="What to expect in Our Place">
-      <p className="opening-status-note"><span aria-hidden="true" /><strong>Your space · Ready when you are</strong></p>
-      <p className="opening-status-note"><span aria-hidden="true" /><strong>Only what you approve is shared</strong></p>
+
+    <aside className="opening-reassurance" aria-label="What to expect in Our Place">
+      <p><span aria-hidden="true">○</span>Your space is ready whenever you are.</p>
+      <p><span aria-hidden="true">○</span>Only what you approve is shared.</p>
     </aside>
-    <div className="opening-steps" ref={steps} tabIndex={-1} aria-label="How Our Place works">
-      <div><span aria-hidden="true">01</span><p><strong>Speak freely</strong><small>There is no right mood or answer.</small></p></div>
-      <div><span aria-hidden="true">02</span><p><strong>Check what we heard</strong><small>Correct anything that does not feel true.</small></p></div>
-      <div><span aria-hidden="true">03</span><p><strong>Share only when it feels true</strong><small>Your approval always comes first.</small></p></div>
-    </div>
+    <ol className="opening-steps" ref={steps} role="list" tabIndex={-1} aria-label="How Our Place works">
+      <li><span aria-hidden="true">01</span><p><strong>Speak freely</strong><small>There is no right mood or answer.</small></p></li>
+      <li><span aria-hidden="true">02</span><p><strong>Check what we heard</strong><small>Correct anything that does not feel true.</small></p></li>
+      <li><span aria-hidden="true">03</span><p><strong>Share only when it feels true</strong><small>Your approval always comes first.</small></p></li>
+    </ol>
   </section>;
 }
 

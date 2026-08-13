@@ -23,11 +23,32 @@ describe("Our Place opening screen", () => {
     expect(screen.getByRole("heading", { level: 1, name: "The small things are how we stay close." })).toBeTruthy();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByText("A warm place to stay close")).toBeTruthy();
-    expect(screen.getByAltText("A multigenerational family embracing together on their porch at golden-hour dusk")).toBeTruthy();
-    expect(screen.getByText("Only what you approve is shared")).toBeTruthy();
+    expect(screen.getByText("Your words remain yours.")).toBeTruthy();
+    expect(screen.getByAltText("Our Place family circle").getAttribute("src")).toContain("our-place-family-mark.png");
+    expect(screen.getByText("Your space is ready whenever you are.")).toBeTruthy();
+    expect(screen.getByText("Only what you approve is shared.")).toBeTruthy();
     expect(screen.queryByText(/Good morning/i)).toBeNull();
 
-    const steps = screen.getByText("Speak freely").closest(".opening-steps");
+    const opening = document.querySelector(".opening-screen");
+    expect(opening?.querySelector(".opening-world-image")).toBeNull();
+    expect(opening?.querySelector(".opening-world-wash")).toBeNull();
+    const forms = opening?.querySelectorAll(".opening-orbit-form") ?? [];
+    expect(forms).toHaveLength(4);
+    for (const form of forms) {
+      expect(form.getAttribute("aria-hidden")).toBe("true");
+      expect(form.tagName).toBe("SPAN");
+    }
+
+    const steps = screen.getByRole("list", { name: "How Our Place works" });
+    expect(within(steps).getAllByRole("listitem")).toHaveLength(3);
+    for (const [title, truth] of [
+      ["Speak freely", "There is no right mood or answer."],
+      ["Check what we heard", "Correct anything that does not feel true."],
+      ["Share only when it feels true", "Your approval always comes first."],
+    ]) {
+      expect(within(steps).getByText(title)).toBeTruthy();
+      expect(within(steps).getByText(truth)).toBeTruthy();
+    }
     expect(steps).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /See how it works/i }));
     expect(document.activeElement).toBe(steps);

@@ -69,16 +69,16 @@ test("server-renders the Our Place experience", async () => {
   assert.match(html, />Our Place</);
   assert.match(html, />A warm place to stay close</);
   assert.match(html, />The small things are how we stay close\.</);
-  assert.match(html, />Enter Our Place</);
-  assert.match(html, /our-place-family-world\.webp/);
-  assert.match(html, /A multigenerational family embracing together on their porch at golden-hour dusk/);
-  assert.match(html, />Your space · Ready when you are</);
-  assert.match(html, />Only what you approve is shared</);
+  assert.match(html, />Enter Our Place\s*<span aria-hidden="true">→<\/span>/);
+  assert.match(html, /our-place-family-mark\.png/);
+  assert.match(html, /Our Place family circle/);
+  assert.doesNotMatch(html, /our-place-family-world\.webp|opening-world-image|opening-world-wash/);
+  assert.match(html, />Your space is ready whenever you are\.</);
+  assert.match(html, />Only what you approve is shared\.</);
   assert.match(html, />Speak freely</);
   assert.match(html, />Check what we heard</);
   assert.match(html, />Share only when it feels true</);
-  assert.match(html, /our-place-family-mark\.png/);
-  assert.match(html, /Our Place — A warm place to stay close, with a family embracing at home/);
+  assert.match(html, /Our Place — A warm abstract family circle in rose, sage, water, and gold/);
   assert.match(html, /https:\/\/preview\.our-place\.example\/og\.png/);
   assert.match(html, /summary_large_image/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
@@ -205,17 +205,20 @@ test("keeps safety, extraction, opening-screen, and voice-heart boundaries in so
   assert.notEqual(openingStart, -1, "missing Opening function");
   assert.notEqual(openingEnd, -1, "missing Opening function boundary");
   const opening = client.slice(openingStart, openingEnd);
-  assert.match(opening, /src="\/our-place-family-world\.webp"/);
-  assert.match(opening, /alt="A multigenerational family embracing together on their porch at golden-hour dusk"/);
-  assert.match(opening, /\bfill\b/);
-  assert.match(opening, /sizes="100vw"/);
+  assert.match(opening, /className="opening-constellation-mark" src="\/our-place-family-mark\.png"/);
+  assert.match(opening, /alt="Our Place family circle"/);
   assert.match(opening, /\bpriority\b/);
   assert.match(opening, /\bunoptimized\b/);
+  assert.doesNotMatch(opening, /our-place-family-world\.webp|opening-world-image|opening-world-wash/);
+  const decorativeForms = opening.match(/className="opening-orbit-form[^"]+" aria-hidden="true"/g) ?? [];
+  assert.equal(decorativeForms.length, 4);
   assert.match(opening, /A warm place to stay close/);
   assert.match(opening, /The small things are how we stay close/);
-  assert.match(opening, /Your space · Ready when you are/);
-  assert.match(opening, /Only what you approve is shared/);
-  assert.equal((opening.match(/className="opening-status-note"/g) ?? []).length, 2);
+  assert.match(opening, /Your words remain yours\./);
+  assert.match(opening, /Your space is ready whenever you are\./);
+  assert.match(opening, /Only what you approve is shared\./);
+  assert.match(opening, /<ol className="opening-steps"[^>]*role="list"/);
+  assert.equal((opening.match(/<li>/g) ?? []).length, 3);
   assert.match(opening, /Speak freely/);
   assert.match(opening, /Check what we heard/);
   assert.match(opening, /Share only when it feels true/);
@@ -259,10 +262,11 @@ test("keeps safety, extraction, opening-screen, and voice-heart boundaries in so
   assert.doesNotMatch(client, /voiceReply|voice-reply|recording|Voice reply sent/);
   assert.match(css, /prefers-reduced-motion/);
   assert.match(css, /focus-visible/);
-  assert.match(css, /\.opening-world-image/);
-  assert.match(css, /\.opening-world-wash/);
-  assert.match(css, /background:#172a29/);
-  assert.match(css, /object-position:68% center/);
+  assert.match(css, /\.opening-screen \{[^}]*background:#fff8e9/);
+  assert.match(css, /\.opening-halo \{[^}]*animation:opening-halo-breathe 11s/);
+  assert.match(css, /\.opening-orbit-form \{[^}]*pointer-events:none[^}]*animation:opening-form-drift/);
+  assert.match(css, /\.opening-constellation-forms \{[^}]*pointer-events:none/);
+  assert.doesNotMatch(css, /opening-world-image|opening-world-wash|background:#172a29|image-rendering/);
   assert.match(css, /--clay:#a44735/);
   assert.match(css, /--violet:#75639d/);
   assert.match(css, /Klee-inspired color dialogue/);
@@ -500,7 +504,7 @@ test("keeps the active product free of legacy identity and chore-domain internal
 
   await Promise.all([
     access(new URL("../public/our-place-family-mark.png", import.meta.url)),
-    access(new URL("../public/our-place-family-world.webp", import.meta.url)),
+    assert.rejects(access(new URL("../public/our-place-family-world.webp", import.meta.url))),
     access(new URL("../public/our-place-family-mark-original.png", import.meta.url)),
     access(new URL(`../demo/legacy-assets/${legacyStem}-social-card.png`, import.meta.url)),
     access(new URL("../public/og.png", import.meta.url)),
